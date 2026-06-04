@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="screen_padding">20dp</dimen>
+    <dimen name="card_radius">22dp</dimen>
+    <dimen name="button_radius">24dp</dimen>
+    <dimen name="input_radius">16dp</dimen>
+    <dimen name="card_padding">16dp</dimen>
+    <dimen name="small_gap">8dp</dimen>
+    <dimen name="medium_gap">12dp</dimen>
+    <dimen name="large_gap">20dp</dimen>
+</resources>

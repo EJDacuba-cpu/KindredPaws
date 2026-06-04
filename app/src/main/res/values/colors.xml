@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_teal">#00796B</color>
+    <color name="primary_teal_dark">#005F56</color>
+    <color name="accent_coral">#B65332</color>
+    <color name="background_light">#F4FBFA</color>
+    <color name="card_white">#FFFFFF</color>
+    <color name="input_background">#EAF7F6</color>
+    <color name="text_primary">#12312F</color>
+    <color name="text_secondary">#6B7C7A</color>
+    <color name="border_soft">#D9ECE9</color>
+    <color name="chip_light_teal">#D9F3EF</color>
+    <color name="chip_light_orange">#FBE6DC</color>
+    <color name="danger_soft">#FFE3DE</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
