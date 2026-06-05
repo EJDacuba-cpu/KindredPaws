@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="160dp"
+    android:layout_width="150dp"
     android:layout_height="wrap_content"
-    android:layout_marginEnd="12dp"
+    android:layout_marginEnd="16dp"
     android:layout_marginBottom="8dp"
     app:cardBackgroundColor="@color/card_white"
-    app:cardCornerRadius="@dimen/card_radius"
-    app:cardElevation="2dp">
+    app:cardCornerRadius="20dp"
+    app:cardElevation="3dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,19 +15,30 @@
         android:orientation="vertical"
         android:padding="12dp">
 
-        <View
-            android:id="@+id/iv_pet_avatar"
+        <FrameLayout
+            android:id="@+id/iv_pet_avatar_container"
             android:layout_width="match_parent"
             android:layout_height="100dp"
-            android:background="@drawable/bg_chip_teal" />
+            android:background="@drawable/bg_input_rounded"
+            android:backgroundTint="#F0F4F3">
+
+            <ImageView
+                android:id="@+id/iv_pet_avatar"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_paw"
+                app:tint="@color/primary_teal" />
+        </FrameLayout>
 
         <TextView
             android:id="@+id/tv_pet_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:text="Luna"
             android:textColor="@color/text_primary"
+            android:textSize="15sp"
             android:textStyle="bold" />
 
         <TextView
@@ -42,11 +53,11 @@
             android:id="@+id/tv_pet_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="6dp"
             android:background="@drawable/bg_chip_teal"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="2dp"
-            android:text="Up to date"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="3dp"
+            android:text="Healthy"
             android:textColor="@color/primary_teal"
             android:textSize="10sp"
             android:textStyle="bold" />

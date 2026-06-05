@@ -1,20 +1,26 @@
 package com.firstapp.kidredpawpaws;
 
+import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 
 import com.firstapp.kidredpawpaws.models.supabase.AppointmentDto;
@@ -22,8 +28,8 @@ import com.firstapp.kidredpawpaws.models.supabase.OwnerDto;
 import com.firstapp.kidredpawpaws.models.supabase.OwnerUpdateRequest;
 import com.firstapp.kidredpawpaws.models.supabase.PetDto;
 import com.firstapp.kidredpawpaws.repositories.ClientRepository;
+import com.firstapp.kidredpawpaws.utils.ModernDialogHelper;
 import com.firstapp.kidredpawpaws.utils.SessionManager;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,11 +47,14 @@ public class ProfileFragment extends Fragment {
     private TextView tvUserName, tvUserEmail, tvUserPhone, tvUserLocation, tvAvatarInitials;
     private TextView tvPetsCount, tvAppointmentsCount;
     private View ivEditProfile;
+    private SwitchCompat switchDarkMode;
+    private View rootView;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
+        rootView = view.findViewById(R.id.nsv_profile_root);
 
         clientRepository = new ClientRepository();
         sessionManager = new SessionManager(requireContext());
@@ -59,19 +68,28 @@ public class ProfileFragment extends Fragment {
         tvPetsCount = view.findViewById(R.id.tv_pets_count);
         tvAppointmentsCount = view.findViewById(R.id.tv_appointments_count);
         ivEditProfile = view.findViewById(R.id.iv_edit_profile);
+        switchDarkMode = view.findViewById(R.id.switch_dark_mode);
 
         // Menu Items
         view.findViewById(R.id.cv_menu_pets).setOnClickListener(v -> navigateToPets(false));
-        
-        // Navigate to Pets screen with History/Appointments selected
         view.findViewById(R.id.cv_menu_history).setOnClickListener(v -> navigateToPets(true));
         
-        view.findViewById(R.id.cv_menu_notifications).setOnClickListener(v -> showSoonDialog("Notifications will be available soon."));
-        view.findViewById(R.id.cv_menu_support).setOnClickListener(v -> showInfoDialog("Help & Support", "For support, please contact Kindred Paws Pet Care Center."));
-        view.findViewById(R.id.cv_menu_privacy).setOnClickListener(v -> showInfoDialog("Privacy Policy", "Your information is used only for appointment and pet care management."));
-        view.findViewById(R.id.cv_menu_about).setOnClickListener(v -> showInfoDialog("About", "Kindred Paws Pet Care Center - Providing quality care for your beloved pets."));
+        view.findViewById(R.id.cv_menu_notifications).setOnClickListener(v -> 
+                ModernDialogHelper.showInfoDialog(requireContext(), "Notifications", "Notifications will be available soon. Keep an eye out for updates!"));
+        
+        view.findViewById(R.id.cv_menu_support).setOnClickListener(v -> 
+                ModernDialogHelper.showInfoDialog(requireContext(), "Help & Support", "For any assistance, please contact our support team at support@kindredpaws.com or call our clinic directly."));
+        
+        view.findViewById(R.id.cv_menu_privacy).setOnClickListener(v -> 
+                ModernDialogHelper.showInfoDialog(requireContext(), "Privacy Policy", "Your privacy is important to us. We use your data exclusively for managing your pet's health records and appointments."));
+        
+        view.findViewById(R.id.cv_menu_about).setOnClickListener(v -> 
+                ModernDialogHelper.showInfoDialog(requireContext(), "About Kindred Paws", "Kindred Paws Pet Care Center - Dedicated to providing premium, compassionate care for your beloved pets. Version 1.0.0"));
 
         ivEditProfile.setOnClickListener(v -> showEditProfileDialog());
+
+        // Dark Mode Toggle
+        setupDarkModeToggle();
 
         // Logout
         Button btnLogout = view.findViewById(R.id.btn_logout);
@@ -88,12 +106,35 @@ public class ProfileFragment extends Fragment {
         return view;
     }
 
+    private void setupDarkModeToggle() {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("app_preferences", Context.MODE_PRIVATE);
+        boolean isDarkMode = prefs.getBoolean("dark_mode_enabled", false);
+        switchDarkMode.setChecked(isDarkMode);
+
+        switchDarkMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Log.d(TAG, "Dark mode enabled: " + isChecked);
+            prefs.edit().putBoolean("dark_mode_enabled", isChecked).apply();
+
+            // Smooth transition fade
+            rootView.animate()
+                    .alpha(0.85f)
+                    .setDuration(150)
+                    .withEndAction(() -> {
+                        if (isChecked) {
+                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                        } else {
+                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                        }
+                    })
+                    .start();
+        });
+    }
+
     private void loadProfileData() {
         String ownerId = sessionManager.getOwnerId();
         String token = sessionManager.getAccessToken();
 
         if (ownerId == null || ownerId.isEmpty()) {
-            showSoonDialog("Please login again.");
             return;
         }
 
@@ -107,7 +148,6 @@ public class ProfileFragment extends Fragment {
                     displayOwnerData(owner);
                 } else {
                     Log.e(TAG, "Failed to load profile. Code: " + response.code());
-                    showSoonDialog("Failed to load profile.");
                 }
             }
 
@@ -121,6 +161,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void displayOwnerData(OwnerDto owner) {
+        if (!isAdded() || getContext() == null) return;
         tvUserName.setText(owner.getFullName());
         tvUserEmail.setText(owner.getEmail());
         tvUserPhone.setText(owner.getPhone() != null ? owner.getPhone() : "No phone number");
@@ -182,52 +223,38 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-    private void showSoonDialog(String message) {
-        new AlertDialog.Builder(requireContext())
-                .setMessage(message)
-                .setPositiveButton("OK", null)
-                .show();
-    }
-
-    private void showInfoDialog(String title, String message) {
-        new AlertDialog.Builder(requireContext())
-                .setTitle(title)
-                .setMessage(message)
-                .setPositiveButton("Close", null)
-                .show();
-    }
-
     private void showEditProfileDialog() {
-        LinearLayout layout = new LinearLayout(requireContext());
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(50, 40, 50, 10);
+        Dialog dialog = new Dialog(requireContext());
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        View v = getLayoutInflater().inflate(R.layout.dialog_edit_profile, null);
+        dialog.setContentView(v);
 
-        final EditText etName = new EditText(requireContext());
-        etName.setHint("Full Name");
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+
+        final EditText etName = v.findViewById(R.id.et_edit_name);
+        final EditText etPhone = v.findViewById(R.id.et_edit_phone);
+        final EditText etLocation = v.findViewById(R.id.et_edit_location);
+        Button btnCancel = v.findViewById(R.id.btn_cancel_edit);
+        Button btnSave = v.findViewById(R.id.btn_save_edit);
+
         etName.setText(tvUserName.getText());
-        layout.addView(etName);
-
-        final EditText etPhone = new EditText(requireContext());
-        etPhone.setHint("Phone");
         etPhone.setText(tvUserPhone.getText().toString().equals("No phone number") ? "" : tvUserPhone.getText());
-        layout.addView(etPhone);
-
-        final EditText etLocation = new EditText(requireContext());
-        etLocation.setHint("Location");
         etLocation.setText(tvUserLocation.getText().toString().equals("No location set") ? "" : tvUserLocation.getText());
-        layout.addView(etLocation);
 
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Edit Profile")
-                .setView(layout)
-                .setPositiveButton("Save", (dialog, which) -> {
-                    String name = etName.getText().toString().trim();
-                    String phone = etPhone.getText().toString().trim();
-                    String location = etLocation.getText().toString().trim();
-                    if (!TextUtils.isEmpty(name)) updateProfile(name, phone, location);
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        btnCancel.setOnClickListener(view -> dialog.dismiss());
+        btnSave.setOnClickListener(view -> {
+            String name = etName.getText().toString().trim();
+            String phone = etPhone.getText().toString().trim();
+            String location = etLocation.getText().toString().trim();
+            if (!TextUtils.isEmpty(name)) {
+                updateProfile(name, phone, location);
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
     }
 
     private void updateProfile(String name, String phone, String location) {
@@ -237,11 +264,11 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                 if (response.isSuccessful()) loadProfileData();
-                else showSoonDialog("Failed to update profile.");
+                else ModernDialogHelper.showInfoDialog(requireContext(), "Update Failed", "We could not update your profile details. Please try again.");
             }
             @Override
             public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
-                showSoonDialog("Network error.");
+                ModernDialogHelper.showInfoDialog(requireContext(), "Network Error", "Unable to connect to the server.");
             }
         });
     }

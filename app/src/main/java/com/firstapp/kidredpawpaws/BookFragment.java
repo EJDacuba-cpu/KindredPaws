@@ -1,13 +1,16 @@
 package com.firstapp.kidredpawpaws;
 
-import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -21,6 +24,7 @@ import com.firstapp.kidredpawpaws.models.supabase.AppointmentDto;
 import com.firstapp.kidredpawpaws.models.supabase.PetCreateRequest;
 import com.firstapp.kidredpawpaws.models.supabase.PetDto;
 import com.firstapp.kidredpawpaws.repositories.ClientRepository;
+import com.firstapp.kidredpawpaws.utils.ModernDialogHelper;
 import com.firstapp.kidredpawpaws.utils.SessionManager;
 
 import java.text.SimpleDateFormat;
@@ -67,9 +71,10 @@ public class BookFragment extends Fragment {
             cardGrooming.setOnClickListener(v -> startBookingFlow("grooming"));
         }
 
-        View cvQuickAddPet = view.findViewById(R.id.cv_quick_add_pet);
-        if (cvQuickAddPet != null) {
-            cvQuickAddPet.setOnClickListener(v -> showAddPetDialog());
+        // Updated Add Pet button location to header
+        View tvAddPetHeader = view.findViewById(R.id.tv_add_pet_header);
+        if (tvAddPetHeader != null) {
+            tvAddPetHeader.setOnClickListener(v -> showAddPetDialog());
         }
 
         loadUpcomingAppointment();
@@ -163,18 +168,26 @@ public class BookFragment extends Fragment {
     }
 
     private void showAddPetDialog() {
+        Dialog dialog = new Dialog(requireContext());
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         View v = getLayoutInflater().inflate(R.layout.dialog_add_pet, null);
+        dialog.setContentView(v);
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+
         EditText etName = v.findViewById(R.id.et_pet_name);
         EditText etSpecies = v.findViewById(R.id.et_pet_species);
         EditText etBreed = v.findViewById(R.id.et_pet_breed);
         EditText etAge = v.findViewById(R.id.et_pet_age);
         TextView tvErr = v.findViewById(R.id.tv_add_pet_error);
-        
-        AlertDialog dialog = new AlertDialog.Builder(requireContext()).setView(v).create();
-        if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        Button btnCancel = v.findViewById(R.id.btn_cancel_pet);
+        Button btnSave = v.findViewById(R.id.btn_save_pet);
 
-        v.findViewById(R.id.btn_cancel_pet).setOnClickListener(view -> dialog.dismiss());
-        v.findViewById(R.id.btn_save_pet).setOnClickListener(view -> {
+        btnCancel.setOnClickListener(view -> dialog.dismiss());
+        btnSave.setOnClickListener(view -> {
             String name = etName.getText().toString().trim();
             String species = etSpecies.getText().toString().trim();
             String breed = etBreed.getText().toString().trim();
@@ -197,11 +210,14 @@ public class BookFragment extends Fragment {
                     if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                         dialog.dismiss();
                         loadUpcomingAppointment();
+                    } else {
+                        tvErr.setText("Failed to add pet. Please try again.");
+                        tvErr.setVisibility(View.VISIBLE);
                     }
                 }
                 @Override
                 public void onFailure(@NonNull Call<List<PetDto>> call, @NonNull Throwable t) {
-                    tvErr.setText("Failed to add pet.");
+                    tvErr.setText("Network error. Please try again.");
                     tvErr.setVisibility(View.VISIBLE);
                 }
             });

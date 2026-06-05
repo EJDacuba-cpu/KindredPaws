@@ -35,7 +35,7 @@ public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
     private EditText etEmail, etPassword;
     private Button btnLogin;
-    private TextView tvLoginMessage;
+    private TextView tvLoginMessage, tvForgotPassword;
     private ImageView ivPasswordToggle;
     private boolean isPasswordVisible = false;
     private ApiService apiService;
@@ -55,6 +55,7 @@ public class LoginActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.et_password);
         btnLogin = findViewById(R.id.btn_login);
         tvLoginMessage = findViewById(R.id.tv_login_message);
+        tvForgotPassword = findViewById(R.id.tv_forgot_password);
         ivPasswordToggle = findViewById(R.id.iv_password_toggle);
 
         ivPasswordToggle.setOnClickListener(v -> {
@@ -70,6 +71,12 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         btnLogin.setOnClickListener(v -> handleLogin());
+
+        tvForgotPassword.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
+            intent.putExtra("email", etEmail.getText().toString().trim());
+            startActivity(intent);
+        });
 
         findViewById(R.id.tv_signup_link).setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
@@ -116,8 +123,8 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 } else {
                     setLoginLoading(false);
-                    Log.e(TAG, "Auth failed. Code: " + response.code());
-                    showLoginError("Login failed. Please check your email or password.");
+                    String errorMessage = getFriendlyErrorMessage(response);
+                    showLoginError(errorMessage);
                 }
             }
 
@@ -176,6 +183,34 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         }, 500);
+    }
+
+    private String getFriendlyErrorMessage(Response<AuthResponse> response) {
+        String errorBody = "";
+        try {
+            if (response.errorBody() != null) {
+                errorBody = response.errorBody().string();
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "Error reading error body", e);
+        }
+
+        Log.e(TAG, "Auth failed. Code: " + response.code());
+        Log.e(TAG, "Full error body: " + errorBody);
+
+        String lowerError = errorBody.toLowerCase();
+
+        if (lowerError.contains("email not confirmed")) {
+            return "Please confirm your email before logging in.";
+        }
+        if (lowerError.contains("invalid login credentials")) {
+            return "Invalid email or password.";
+        }
+        if (lowerError.contains("user not found")) {
+            return "Account not found. Please sign up first.";
+        }
+
+        return "Login failed. Code: " + response.code();
     }
 
     private void showLoginError(String message) {

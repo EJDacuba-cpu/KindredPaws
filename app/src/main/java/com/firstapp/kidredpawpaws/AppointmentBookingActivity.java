@@ -1,20 +1,23 @@
 package com.firstapp.kidredpawpaws;
 
 import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -24,6 +27,7 @@ import com.firstapp.kidredpawpaws.models.supabase.PetCreateRequest;
 import com.firstapp.kidredpawpaws.models.supabase.PetDto;
 import com.firstapp.kidredpawpaws.models.supabase.StaffDto;
 import com.firstapp.kidredpawpaws.repositories.ClientRepository;
+import com.firstapp.kidredpawpaws.utils.ModernDialogHelper;
 import com.firstapp.kidredpawpaws.utils.SessionManager;
 
 import java.text.SimpleDateFormat;
@@ -140,6 +144,7 @@ public class AppointmentBookingActivity extends AppCompatActivity {
     }
 
     private void displayPets(List<PetDto> pets) {
+        if (llPetsContainer == null) return;
         llPetsContainer.removeAllViews();
         if (pets.isEmpty()) {
             llNoPetsContainer.setVisibility(View.VISIBLE);
@@ -327,18 +332,26 @@ public class AppointmentBookingActivity extends AppCompatActivity {
     }
 
     private void showAddPetDialog() {
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         View v = getLayoutInflater().inflate(R.layout.dialog_add_pet, null);
+        dialog.setContentView(v);
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+
         EditText etName = v.findViewById(R.id.et_pet_name);
         EditText etSpecies = v.findViewById(R.id.et_pet_species);
         EditText etBreed = v.findViewById(R.id.et_pet_breed);
         EditText etAge = v.findViewById(R.id.et_pet_age);
         TextView tvErr = v.findViewById(R.id.tv_add_pet_error);
-        
-        AlertDialog dialog = new AlertDialog.Builder(this).setView(v).create();
-        if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        Button btnCancel = v.findViewById(R.id.btn_cancel_pet);
+        Button btnSave = v.findViewById(R.id.btn_save_pet);
 
-        v.findViewById(R.id.btn_cancel_pet).setOnClickListener(view -> dialog.dismiss());
-        v.findViewById(R.id.btn_save_pet).setOnClickListener(view -> {
+        btnCancel.setOnClickListener(view -> dialog.dismiss());
+        btnSave.setOnClickListener(view -> {
             String name = etName.getText().toString().trim();
             String species = etSpecies.getText().toString().trim();
             String breed = etBreed.getText().toString().trim();
@@ -361,11 +374,14 @@ public class AppointmentBookingActivity extends AppCompatActivity {
                     if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                         dialog.dismiss();
                         loadPets();
+                    } else {
+                        tvErr.setText("Failed to add pet.");
+                        tvErr.setVisibility(View.VISIBLE);
                     }
                 }
                 @Override
                 public void onFailure(@NonNull Call<List<PetDto>> call, @NonNull Throwable t) {
-                    tvErr.setText("Failed to add pet.");
+                    tvErr.setText("Network error.");
                     tvErr.setVisibility(View.VISIBLE);
                 }
             });

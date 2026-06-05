@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="primary_teal">#00796B</color>
+    <color name="primary_teal_light">#008577</color>
     <color name="primary_teal_dark">#005F56</color>
-    <color name="accent_coral">#B65332</color>
-    <color name="background_light">#F4FBFA</color>
+    <color name="deep_teal_text">#063F3A</color>
+    <color name="accent_coral">#B4532B</color>
+    <color name="background_light">#EEF8F6</color>
     <color name="card_white">#FFFFFF</color>
+    <color name="soft_mint_chip">#DDF5F0</color>
     <color name="input_background">#EAF7F6</color>
-    <color name="text_primary">#12312F</color>
+    <color name="text_primary">#063F3A</color>
     <color name="text_secondary">#6B7C7A</color>
     <color name="border_soft">#D9ECE9</color>
     <color name="chip_light_teal">#D9F3EF</color>
@@ -15,4 +18,8 @@
     <color name="danger_text">#B3261E</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Redesign colors -->
+    <color name="surface_variant">#EEF7F5</color>
+    <color name="shadow_color">#1A000000</color>
 </resources>

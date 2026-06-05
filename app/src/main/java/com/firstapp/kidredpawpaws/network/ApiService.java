@@ -1,6 +1,7 @@
 package com.firstapp.kidredpawpaws.network;
 
 import com.firstapp.kidredpawpaws.models.auth.AuthResponse;
+import com.firstapp.kidredpawpaws.models.auth.ForgotPasswordRequest;
 import com.firstapp.kidredpawpaws.models.auth.LoginRequest;
 import com.firstapp.kidredpawpaws.models.auth.SignUpRequest;
 import com.firstapp.kidredpawpaws.models.supabase.AppointmentCreateRequest;
@@ -30,6 +31,9 @@ public interface ApiService {
 
     @POST("auth/v1/token?grant_type=password")
     Call<AuthResponse> login(@Body LoginRequest request);
+
+    @POST("auth/v1/recover")
+    Call<Void> forgotPassword(@Body ForgotPasswordRequest request);
 
     @POST("rest/v1/owners")
     Call<List<OwnerDto>> createOwner(

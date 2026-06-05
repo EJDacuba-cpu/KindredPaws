@@ -8,4 +8,11 @@
     </style>
 
     <style name="Theme.KidredPawpaws" parent="Base.Theme.KidredPawpaws" />
+
+    <!-- Starting theme to hide default system splash on older Android versions -->
+    <style name="Theme.KidredPawpaws.Starting" parent="Theme.KidredPawpaws">
+        <item name="android:windowBackground">#F7FFFC</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+    </style>
 </resources>

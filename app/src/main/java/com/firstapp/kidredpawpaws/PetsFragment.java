@@ -11,7 +11,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
@@ -19,9 +18,11 @@ import com.firstapp.kidredpawpaws.models.supabase.AppointmentDto;
 import com.firstapp.kidredpawpaws.models.supabase.MedicalRecordDto;
 import com.firstapp.kidredpawpaws.models.supabase.PetDto;
 import com.firstapp.kidredpawpaws.repositories.ClientRepository;
+import com.firstapp.kidredpawpaws.utils.ModernDialogHelper;
 import com.firstapp.kidredpawpaws.utils.SessionManager;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -332,28 +333,28 @@ public class PetsFragment extends Fragment {
     }
 
     private void showMedicalRecordDetails(MedicalRecordDto record) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Title: ").append(record.getTitle() != null ? record.getTitle() : "Not specified").append("\n\n");
-        sb.append("Date: ").append(formatDate(record.getRecordDate())).append("\n\n");
-        sb.append("Patient: ").append(selectedPet != null ? selectedPet.getName() : "Unknown").append("\n\n");
-        sb.append("Type: ").append(record.getType() != null ? record.getType() : "Not specified").append("\n\n");
-        sb.append("Attending: ").append(record.getAttending() != null ? record.getAttending() : "Not specified").append("\n\n");
-        sb.append("Notes: ").append(record.getNote() != null && !record.getNote().isEmpty() ? record.getNote() : "No notes available");
+        List<ModernDialogHelper.DetailItem> details = new ArrayList<>();
+        details.add(new ModernDialogHelper.DetailItem("Title", record.getTitle() != null ? record.getTitle() : "Not specified"));
+        details.add(new ModernDialogHelper.DetailItem("Date", formatDate(record.getRecordDate())));
+        details.add(new ModernDialogHelper.DetailItem("Patient", selectedPet != null ? selectedPet.getName() : "Unknown"));
+        details.add(new ModernDialogHelper.DetailItem("Type", record.getType() != null ? record.getType() : "Not specified"));
+        details.add(new ModernDialogHelper.DetailItem("Attending", record.getAttending() != null ? record.getAttending() : "Not specified"));
+        details.add(new ModernDialogHelper.DetailItem("Notes", record.getNote() != null && !record.getNote().isEmpty() ? record.getNote() : "No notes available"));
 
-        new AlertDialog.Builder(requireContext()).setTitle("Medical Record Details").setMessage(sb.toString()).setPositiveButton("Close", null).show();
+        ModernDialogHelper.showDetailsDialog(requireContext(), "Medical Record Details", details);
     }
 
     private void showAppointmentDetails(AppointmentDto appt) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Pet: ").append(selectedPet != null ? selectedPet.getName() : "Unknown").append("\n\n");
-        sb.append("Type: ").append(appt.getType() != null ? appt.getType() : "Not specified").append("\n\n");
-        sb.append("Category/Service: ").append(appt.getService() != null ? appt.getService() : (appt.getCategory() != null ? appt.getCategory() : "Not specified")).append("\n\n");
-        sb.append("Date: ").append(formatDate(appt.getScheduledAt())).append("\n\n");
-        sb.append("Time: ").append(formatTime(appt.getScheduledAt())).append("\n\n");
-        sb.append("Status: ").append(appt.getStatus() != null ? appt.getStatus().toUpperCase() : "SCHEDULED").append("\n\n");
-        sb.append("Note: ").append(appt.getNote() != null && !appt.getNote().isEmpty() ? appt.getNote() : "No notes available");
+        List<ModernDialogHelper.DetailItem> details = new ArrayList<>();
+        details.add(new ModernDialogHelper.DetailItem("Pet", selectedPet != null ? selectedPet.getName() : "Unknown"));
+        details.add(new ModernDialogHelper.DetailItem("Type", appt.getType() != null ? appt.getType() : "Not specified"));
+        details.add(new ModernDialogHelper.DetailItem("Category", appt.getService() != null ? appt.getService() : (appt.getCategory() != null ? appt.getCategory() : "Not specified")));
+        details.add(new ModernDialogHelper.DetailItem("Date", formatDate(appt.getScheduledAt())));
+        details.add(new ModernDialogHelper.DetailItem("Time", formatTime(appt.getScheduledAt())));
+        details.add(new ModernDialogHelper.DetailItem("Status", appt.getStatus() != null ? appt.getStatus().toUpperCase() : "SCHEDULED"));
+        details.add(new ModernDialogHelper.DetailItem("Note", appt.getNote() != null && !appt.getNote().isEmpty() ? appt.getNote() : "No details available"));
 
-        new AlertDialog.Builder(requireContext()).setTitle("Appointment Details").setMessage(sb.toString()).setPositiveButton("Close", null).show();
+        ModernDialogHelper.showDetailsDialog(requireContext(), "Appointment Details", details);
     }
 
     private String formatDate(String iso) {
@@ -433,9 +434,15 @@ public class PetsFragment extends Fragment {
 
     private void showPetSelector() {
         if (petList == null || petList.isEmpty()) return;
-        String[] names = new String[petList.size()];
-        for (int i = 0; i < petList.size(); i++) names[i] = petList.get(i).getName();
-        new AlertDialog.Builder(requireContext()).setTitle("Select Pet").setItems(names, (dialog, which) -> displayPet(petList.get(which))).show();
+        List<String> names = new ArrayList<>();
+        int selectedIndex = -1;
+        for (int i = 0; i < petList.size(); i++) {
+            names.add(petList.get(i).getName());
+            if (selectedPet != null && petList.get(i).getId().equals(selectedPet.getId())) {
+                selectedIndex = i;
+            }
+        }
+        ModernDialogHelper.showListDialog(requireContext(), "Select Pet", names, selectedIndex, position -> displayPet(petList.get(position)));
     }
 
     private void showEmptyState(String message) {

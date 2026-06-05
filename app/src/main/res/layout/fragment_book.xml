@@ -12,138 +12,152 @@
         android:orientation="vertical"
         android:padding="@dimen/screen_padding">
 
-        <TextView
-            android:id="@+id/tv_book_title"
-            android:layout_width="wrap_content"
+        <!-- Header Row with Title and Add Pet -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Book an Appointment"
-            android:textColor="@color/text_primary"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            android:layout_marginTop="24dp">
 
-        <TextView
-            android:id="@+id/tv_book_subtitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Select the type of service you need."
-            android:textColor="@color/text_secondary"
-            android:textSize="16sp" />
+            <TextView
+                android:id="@+id/tv_book_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Book an Appointment"
+                android:textColor="@color/text_primary"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toStartOf="@+id/tv_add_pet_header"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
+            <TextView
+                android:id="@+id/tv_add_pet_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="4dp"
+                android:text="+ Add Pet"
+                android:textColor="@color/primary_teal"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="@+id/tv_book_title"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/tv_book_title" />
+
+            <TextView
+                android:id="@+id/tv_book_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Select the type of service you need."
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_book_title" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Appointment Type Cards in one row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="32dp">
+            android:layout_marginTop="24dp"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
 
             <!-- Vet Appointment Card -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_book_vet"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/card_white"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp">
+
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="140dp"
+                    android:gravity="center_vertical"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_marginBottom="12dp"
+                        android:src="@android:drawable/ic_menu_my_calendar"
+                        app:tint="@color/primary_teal" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Vet Appointment"
                         android:textColor="@color/primary_teal"
-                        android:textSize="18sp"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="Check-up, vaccination, and surgery"
                         android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
             <!-- Grooming Appointment Card -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_book_grooming"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/card_white"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp">
+
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="140dp"
+                    android:gravity="center_vertical"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_marginBottom="12dp"
+                        android:src="@drawable/ic_paw"
+                        app:tint="@color/primary_teal" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Grooming Appointment"
                         android:textColor="@color/primary_teal"
-                        android:textSize="18sp"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="Grooming, styling, and pet care"
                         android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
         </LinearLayout>
-
-        <!-- Quick Action: Add Pet -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/cv_quick_add_pet"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="@color/card_white"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="2dp">
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="16dp"
-                android:gravity="center_vertical">
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_paw"
-                    app:tint="@color/primary_teal" />
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="16dp"
-                    android:text="Add a new pet"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Add +"
-                    android:textColor="@color/primary_teal"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
 
         <!-- Upcoming Appointment Section -->
         <TextView

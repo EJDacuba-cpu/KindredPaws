@@ -125,10 +125,6 @@ public class SignUpActivity extends AppCompatActivity {
                 } else {
                     setSignUpLoading(false);
                     String errorMessage = getFriendlyErrorMessage(response);
-                    if (response.code() == 429) {
-                        errorMessage = "Too many sign up attempts. Please wait and try again later.";
-                    }
-                    Log.e(TAG, "Sign up failed. Code: " + response.code());
                     showSignUpError(errorMessage);
                 }
             }
@@ -147,7 +143,7 @@ public class SignUpActivity extends AppCompatActivity {
         String authHeader = "Bearer " + accessToken;
         String preferHeader = "return=representation";
 
-        apiService.createOwner(authHeader, preferHeader, ownerRequest).enqueue(new Callback<>() {
+        apiService.createOwner(authHeader, preferHeader, ownerRequest).enqueue(new Callback<List<OwnerDto>>() {
             @Override
             public void onResponse(@NonNull Call<List<OwnerDto>> call, @NonNull Response<List<OwnerDto>> response) {
                 setSignUpLoading(false);
@@ -190,50 +186,37 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private String getFriendlyErrorMessage(Response<AuthResponse> response) {
-        String defaultMessage = "Sign up failed. Please check your details.";
-
+        String errorBody = "";
         try {
-            if (response.errorBody() == null) {
-                return defaultMessage + " Code: " + response.code();
+            if (response.errorBody() != null) {
+                errorBody = response.errorBody().string();
             }
-
-            String errorBody = response.errorBody().string();
-            Log.e(TAG, "Sign up error body: " + errorBody);
-
-            String lowerError = errorBody.toLowerCase();
-
-            if (lowerError.contains("already registered")
-                    || lowerError.contains("already exists")
-                    || lowerError.contains("user_already_exists")) {
-                return "Email is already registered.";
-            }
-
-            if (lowerError.contains("password")
-                    || lowerError.contains("weak_password")
-                    || lowerError.contains("at least 6")) {
-                return "Password must be at least 6 characters.";
-            }
-
-            if (lowerError.contains("signup")
-                    && lowerError.contains("disabled")) {
-                return "Sign up is disabled in Supabase.";
-            }
-
-            if (lowerError.contains("invalid api key")
-                    || lowerError.contains("api key")) {
-                return "Invalid Supabase API key.";
-            }
-
-            if (lowerError.contains("invalid email")) {
-                return "Invalid email address.";
-            }
-
-            return defaultMessage + " Code: " + response.code();
-
         } catch (IOException e) {
-            Log.e(TAG, "Error reading sign up error body", e);
-            return defaultMessage + " Code: " + response.code();
+            Log.e(TAG, "Error reading error body", e);
         }
+
+        Log.e(TAG, "Sign up failed. Code: " + response.code());
+        Log.e(TAG, "Full error body: " + errorBody);
+
+        String lowerError = errorBody.toLowerCase();
+
+        if (lowerError.contains("user already registered") || lowerError.contains("already exists")) {
+            return "Email is already registered. Please login instead.";
+        }
+        if (lowerError.contains("password should be at least")) {
+            return "Password must be at least 6 characters.";
+        }
+        if (lowerError.contains("signup requires a valid password")) {
+            return "Please enter a valid password.";
+        }
+        if (lowerError.contains("invalid email")) {
+            return "Please enter a valid email address.";
+        }
+        if (lowerError.contains("rate limit") || lowerError.contains("too many") || response.code() == 429) {
+            return "Too many sign up attempts. Please wait and try again later.";
+        }
+
+        return "Sign up failed. Please try again. Code: " + response.code();
     }
 
     private void showSignUpError(String message) {
