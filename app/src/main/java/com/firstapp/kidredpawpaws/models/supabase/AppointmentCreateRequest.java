@@ -15,8 +15,10 @@ public class AppointmentCreateRequest {
     private Integer durationMinutes;
     private String status;
     private String note;
+    @SerializedName("staff_id")
+    private String staffId;
 
-    public AppointmentCreateRequest(String petId, String type, String category, String title, String service, String scheduledAt, Integer durationMinutes, String status, String note) {
+    public AppointmentCreateRequest(String petId, String type, String category, String title, String service, String scheduledAt, Integer durationMinutes, String status, String note, String staffId) {
         this.petId = petId;
         this.type = type;
         this.category = category;
@@ -26,6 +28,7 @@ public class AppointmentCreateRequest {
         this.durationMinutes = durationMinutes;
         this.status = status;
         this.note = note;
+        this.staffId = staffId;
     }
 
     public String getPetId() { return petId; }
@@ -54,4 +57,7 @@ public class AppointmentCreateRequest {
 
     public String getNote() { return note; }
     public void setNote(String note) { this.note = note; }
+
+    public String getStaffId() { return staffId; }
+    public void setStaffId(String staffId) { this.staffId = staffId; }
 }

@@ -48,7 +48,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Your appointment for Luna has been scheduled successfully."
+            android:text="Your appointment has been scheduled successfully."
             android:textAlignment="center"
             android:textColor="@color/text_secondary"
             android:textSize="16sp"
@@ -74,38 +74,53 @@
                 android:padding="20dp">
 
                 <TextView
+                    android:id="@+id/tv_confirm_pet"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pet: Luna"
+                    android:text="Pet: --"
                     android:textColor="@color/text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tv_confirm_service"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="Service: Full Grooming"
+                    android:text="Service: --"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp" />
 
                 <TextView
+                    android:id="@+id/tv_confirm_staff"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Date: Friday, May 16, 2024"
+                    android:text="Staff: --"
                     android:textColor="@color/text_primary"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    android:visibility="gone" />
 
                 <TextView
+                    android:id="@+id/tv_confirm_date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Time: 4:50 PM"
+                    android:text="Date: --"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp" />
 
                 <TextView
+                    android:id="@+id/tv_confirm_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Time: --"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tv_confirm_location"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"

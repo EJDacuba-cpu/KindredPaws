@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_light"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/screen_padding">
+
+        <!-- Header -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ImageButton
+                android:id="@+id/btn_back_booking"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_right"
+                android:rotation="180"
+                app:tint="@color/text_primary" />
+            <TextView
+                android:id="@+id/tv_booking_header_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="Book Appointment"
+                android:textColor="@color/text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_gravity="center"
+            android:text="Complete the steps below to schedule."
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp" />
+
+        <!-- Progress -->
+        <TextView
+            android:id="@+id/tv_booking_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_gravity="center"
+            android:text="Step 1 of 4"
+            android:textColor="@color/primary_teal"
+            android:textStyle="bold" />
+
+        <!-- Step 1: Select Pet -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cv_step_pet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+                <TextView
+                    android:id="@+id/tv_step_pet_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1. Select Pet"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/ll_no_pets_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="No pets found. Add a pet first before booking."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp"
+                        android:textAlignment="center" />
+                    <Button
+                        android:id="@+id/btn_add_pet_empty"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="+ Add Pet"
+                        android:textAllCaps="false"
+                        android:backgroundTint="@color/primary_teal"
+                        android:textColor="@color/white" />
+                </LinearLayout>
+
+                <HorizontalScrollView
+                    android:id="@+id/hsv_pets"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:scrollbars="none">
+                    <LinearLayout
+                        android:id="@+id/ll_booking_pets"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Step 2: Select Service -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cv_step_service"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+                <TextView
+                    android:id="@+id/tv_service_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="2. Select Service"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:scrollbars="none">
+                    <LinearLayout
+                        android:id="@+id/ll_booking_services"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Step 3: Preferred Staff -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cv_step_staff"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+                <TextView
+                    android:id="@+id/tv_staff_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="3. Select Veterinarian"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:scrollbars="none">
+                    <LinearLayout
+                        android:id="@+id/ll_booking_staff"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Step 4: Date & Time -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cv_step_datetime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="4. Pick Date &amp; Time"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+                    <TextView android:id="@+id/tv_booking_date" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Select Date" android:gravity="center" android:padding="12dp" android:background="@drawable/bg_chip_teal" android:textColor="@color/primary_teal" android:textStyle="bold" android:layout_marginEnd="8dp" android:clickable="true" android:focusable="true"/>
+                    <TextView android:id="@+id/tv_booking_time" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Select Time" android:gravity="center" android:padding="12dp" android:background="@drawable/bg_chip_teal" android:textColor="@color/primary_teal" android:textStyle="bold" android:clickable="true" android:focusable="true"/>
+                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Clinic hours: 8:00 AM – 5:00 PM"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Error Message -->
+        <TextView
+            android:id="@+id/tv_booking_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:textColor="@color/danger_text"
+            android:textSize="13sp"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btn_confirm_booking"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="40dp"
+            android:background="@drawable/bg_button_primary"
+            android:text="Confirm Booking"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

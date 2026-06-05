@@ -8,8 +8,10 @@ import com.firstapp.kidredpawpaws.models.supabase.AppointmentDto;
 import com.firstapp.kidredpawpaws.models.supabase.MedicalRecordDto;
 import com.firstapp.kidredpawpaws.models.supabase.OwnerCreateRequest;
 import com.firstapp.kidredpawpaws.models.supabase.OwnerDto;
+import com.firstapp.kidredpawpaws.models.supabase.OwnerUpdateRequest;
 import com.firstapp.kidredpawpaws.models.supabase.PetCreateRequest;
 import com.firstapp.kidredpawpaws.models.supabase.PetDto;
+import com.firstapp.kidredpawpaws.models.supabase.StaffDto;
 
 import java.util.List;
 
@@ -17,6 +19,7 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
 
@@ -42,6 +45,20 @@ public interface ApiService {
             @Query("select") String select
     );
 
+    @GET("rest/v1/owners")
+    Call<List<OwnerDto>> getOwnerById(
+            @Header("Authorization") String authorization,
+            @Query("id") String id,
+            @Query("select") String select
+    );
+
+    @PATCH("rest/v1/owners")
+    Call<Void> updateOwner(
+            @Header("Authorization") String authorization,
+            @Query("id") String id,
+            @Body OwnerUpdateRequest request
+    );
+
     @GET("rest/v1/pets")
     Call<List<PetDto>> getPets(
             @Header("Authorization") String authorization,
@@ -56,6 +73,12 @@ public interface ApiService {
             @Body PetCreateRequest request
     );
 
+    @GET("rest/v1/staff")
+    Call<List<StaffDto>> getStaff(
+            @Header("Authorization") String authorization,
+            @Query("select") String select
+    );
+
     @GET("rest/v1/appointments")
     Call<List<AppointmentDto>> getAppointments(
             @Header("Authorization") String authorization,
@@ -63,6 +86,15 @@ public interface ApiService {
             @Query("select") String select,
             @Query("order") String order,
             @Query("limit") Integer limit
+    );
+
+    @GET("rest/v1/appointments")
+    Call<List<AppointmentDto>> getAppointmentsByRange(
+            @Header("Authorization") String authorization,
+            @Query("scheduled_at") List<String> scheduledAtFilters,
+            @Query("status") String statusFilter,
+            @Query("select") String select,
+            @Query("order") String order
     );
 
     @POST("rest/v1/appointments")
@@ -76,6 +108,7 @@ public interface ApiService {
     Call<List<MedicalRecordDto>> getMedicalRecords(
             @Header("Authorization") String authorization,
             @Query("pet_id") String petId,
-            @Query("select") String select
+            @Query("select") String select,
+            @Query("order") String order
     );
 }

@@ -30,6 +30,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
+                android:id="@+id/iv_edit_profile"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@android:drawable/ic_menu_edit"
@@ -52,25 +53,36 @@
                 android:layout_height="wrap_content"
                 android:padding="20dp">
 
-                <View
-                    android:id="@+id/iv_avatar"
+                <FrameLayout
+                    android:id="@+id/fl_avatar"
                     android:layout_width="72dp"
                     android:layout_height="72dp"
                     android:background="@drawable/bg_avatar_circle"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent">
+                    <TextView
+                        android:id="@+id/tv_avatar_initials"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="AR"
+                        android:textColor="@color/white"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
 
                 <TextView
                     android:id="@+id/tv_user_name"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="Alex Rivera"
+                    android:text="Loading..."
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    app:layout_constraintStart_toEndOf="@id/iv_avatar"
-                    app:layout_constraintTop_toTopOf="@id/iv_avatar" />
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/fl_avatar"
+                    app:layout_constraintTop_toTopOf="@id/fl_avatar" />
 
                 <TextView
                     android:id="@+id/tv_role_chip"
@@ -94,20 +106,31 @@
                     android:orientation="vertical"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/iv_avatar">
+                    app:layout_constraintTop_toBottomOf="@id/fl_avatar">
 
                     <TextView
+                        android:id="@+id/tv_user_email"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="alex.rivera@email.com"
+                        android:text="--"
                         android:textColor="@color/text_secondary"
                         android:textSize="14sp" />
 
                     <TextView
+                        android:id="@+id/tv_user_phone"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="+63 912 345 6789"
+                        android:text="--"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tv_user_location"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="--"
                         android:textColor="@color/text_secondary"
                         android:textSize="14sp" />
                 </LinearLayout>
@@ -138,9 +161,10 @@
                     android:padding="16dp">
 
                     <TextView
+                        android:id="@+id/tv_pets_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="2"
+                        android:text="0"
                         android:textColor="@color/primary_teal"
                         android:textSize="24sp"
                         android:textStyle="bold" />
@@ -171,9 +195,10 @@
                     android:padding="16dp">
 
                     <TextView
+                        android:id="@+id/tv_appointments_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="5"
+                        android:text="0"
                         android:textColor="@color/primary_teal"
                         android:textSize="24sp"
                         android:textStyle="bold" />
@@ -197,9 +222,12 @@
 
             <!-- Item: My Pets -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cv_menu_pets"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:clickable="true"
+                android:focusable="true"
                 app:cardBackgroundColor="@color/card_white"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="1dp">
@@ -207,7 +235,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_menu_item"
+                    android:background="?attr/selectableItemBackground"
                     android:gravity="center_vertical"
                     android:padding="16dp">
 
@@ -236,9 +264,12 @@
 
             <!-- Item: Appointment History -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cv_menu_history"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:clickable="true"
+                android:focusable="true"
                 app:cardBackgroundColor="@color/card_white"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="1dp">
@@ -246,7 +277,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_menu_item"
+                    android:background="?attr/selectableItemBackground"
                     android:gravity="center_vertical"
                     android:padding="16dp">
 
@@ -275,9 +306,12 @@
 
             <!-- Item: Notifications -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cv_menu_notifications"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:clickable="true"
+                android:focusable="true"
                 app:cardBackgroundColor="@color/card_white"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="1dp">
@@ -285,7 +319,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_menu_item"
+                    android:background="?attr/selectableItemBackground"
                     android:gravity="center_vertical"
                     android:padding="16dp">
 
@@ -314,9 +348,12 @@
 
             <!-- Item: Help & Support -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cv_menu_support"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:clickable="true"
+                android:focusable="true"
                 app:cardBackgroundColor="@color/card_white"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="1dp">
@@ -324,7 +361,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_menu_item"
+                    android:background="?attr/selectableItemBackground"
                     android:gravity="center_vertical"
                     android:padding="16dp">
 
@@ -353,9 +390,12 @@
 
             <!-- Item: Privacy Policy -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cv_menu_privacy"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:clickable="true"
+                android:focusable="true"
                 app:cardBackgroundColor="@color/card_white"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="1dp">
@@ -363,7 +403,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_menu_item"
+                    android:background="?attr/selectableItemBackground"
                     android:gravity="center_vertical"
                     android:padding="16dp">
 
@@ -392,9 +432,12 @@
 
             <!-- Item: About Kindred Paws -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cv_menu_about"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:clickable="true"
+                android:focusable="true"
                 app:cardBackgroundColor="@color/card_white"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="1dp">
@@ -402,7 +445,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_menu_item"
+                    android:background="?attr/selectableItemBackground"
                     android:gravity="center_vertical"
                     android:padding="16dp">
 

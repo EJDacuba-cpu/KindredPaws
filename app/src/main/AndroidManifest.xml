@@ -31,6 +31,10 @@
             android:name=".MainActivity"
             android:exported="false" />
         <activity
+            android:name=".AppointmentBookingActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
             android:name=".AppointmentConfirmationActivity"
             android:exported="false" />
     </application>
