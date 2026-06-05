@@ -22,6 +22,6 @@ public class PetsFragment extends Fragment {
         // For prototype feel, making the notifications and hero card clickable
         view.findViewById(R.id.iv_app_logo_mini).setOnClickListener(comingSoon);
 
-        return view;
+        return view ;
     }
 }
