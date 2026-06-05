@@ -2,11 +2,16 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+// Load local.properties
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localProperties.load(new FileInputStream(localPropertiesFile))
+}
+
 android {
     namespace 'com.firstapp.kidredpawpaws'
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.firstapp.kidredpawpaws"
@@ -16,6 +21,10 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Add buildConfigFields
+        buildConfigField "String", "SUPABASE_URL", "\"${localProperties.getProperty('SUPABASE_URL')}\""
+        buildConfigField "String", "SUPABASE_ANON_KEY", "\"${localProperties.getProperty('SUPABASE_ANON_KEY')}\""
     }
 
     buildTypes {
@@ -24,6 +33,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    buildFeatures {
+        buildConfig true
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
@@ -35,6 +49,10 @@ dependencies {
     implementation libs.material
     implementation libs.activity
     implementation libs.constraintlayout
+    implementation libs.retrofit
+    implementation libs.converter.gson
+    implementation libs.okhttp
+    implementation libs.logging.interceptor
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core

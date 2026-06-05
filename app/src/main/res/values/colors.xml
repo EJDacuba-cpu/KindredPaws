@@ -12,6 +12,7 @@
     <color name="chip_light_teal">#D9F3EF</color>
     <color name="chip_light_orange">#FBE6DC</color>
     <color name="danger_soft">#FFE3DE</color>
+    <color name="danger_text">#B3261E</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>
