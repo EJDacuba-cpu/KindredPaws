@@ -51,6 +51,7 @@ public class PetsFragment extends Fragment {
 
     private List<PetDto> petList;
     private PetDto selectedPet;
+    private String selectedPetId; // Track the selected pet ID
     private boolean isHistoryTab = true; 
     private boolean isMedicalFilter = true; // Secondary filter
 
@@ -136,9 +137,9 @@ public class PetsFragment extends Fragment {
                         hideEmptyState();
                         // Maintain selected pet if switching filters
                         if (selectedPet == null) {
-                            displayPet(petList.get(0));
+                            displayPetData(petList.get(0));
                         } else {
-                            displayPet(selectedPet);
+                            displayPetData(selectedPet);
                         }
                     }
                 } else {
@@ -153,8 +154,9 @@ public class PetsFragment extends Fragment {
         });
     }
 
-    private void displayPet(PetDto pet) {
+    private void displayPetData(PetDto pet) {
         selectedPet = pet;
+        selectedPetId = pet.getId();
         Log.d(TAG, "Selected Pet ID: " + pet.getId());
 
         if (tvPetName != null) tvPetName.setText(pet.getName());
@@ -200,13 +202,13 @@ public class PetsFragment extends Fragment {
     private void refreshHistory() {
         if (selectedPet == null) return;
         if (isMedicalFilter) {
-            loadMedicalHistory(selectedPet.getId());
+            loadMedicalRecords(selectedPet.getId());
         } else {
             loadAppointmentHistory(selectedPet.getId());
         }
     }
 
-    private void loadMedicalHistory(String petId) {
+    private void loadMedicalRecords(String petId) {
         String token = sessionManager.getAccessToken();
         if (llHistoryContainer == null) return;
         llHistoryContainer.removeAllViews();
@@ -442,7 +444,19 @@ public class PetsFragment extends Fragment {
                 selectedIndex = i;
             }
         }
-        ModernDialogHelper.showListDialog(requireContext(), "Select Pet", names, selectedIndex, position -> displayPet(petList.get(position)));
+        ModernDialogHelper.showListDialog(requireContext(), "Select Pet", names, selectedIndex, position -> {
+            PetDto pet = petList.get(position);
+            Log.d(TAG, "clicked pet name: " + pet.getName());
+            Log.d(TAG, "clicked pet id: " + pet.getId());
+            
+            selectedPet = pet;
+            selectedPetId = pet.getId();
+            Log.d(TAG, "selectedPetId after update: " + selectedPetId);
+            
+            displayPetData(pet);
+            loadMedicalRecords(pet.getId());
+            loadAppointmentHistory(pet.getId());
+        });
     }
 
     private void showEmptyState(String message) {

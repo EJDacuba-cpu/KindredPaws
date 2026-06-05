@@ -1,13 +1,17 @@
 package com.firstapp.kidredpawpaws.utils;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -35,8 +39,6 @@ public class ModernDialogHelper {
         View view = LayoutInflater.from(context).inflate(R.layout.dialog_modern_info, null);
         dialog.setContentView(view);
 
-        setupDialogWindow(dialog);
-
         TextView tvTitle = view.findViewById(R.id.tv_dialog_title);
         TextView tvMessage = view.findViewById(R.id.tv_dialog_message);
         Button btnClose = view.findViewById(R.id.btn_dialog_positive);
@@ -46,6 +48,7 @@ public class ModernDialogHelper {
         btnClose.setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
+        setupDialogWindow(context, dialog);
     }
 
     /**
@@ -56,8 +59,6 @@ public class ModernDialogHelper {
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         View view = LayoutInflater.from(context).inflate(R.layout.dialog_modern_details, null);
         dialog.setContentView(view);
-
-        setupDialogWindow(dialog);
 
         TextView tvTitle = view.findViewById(R.id.tv_details_title);
         LinearLayout container = view.findViewById(R.id.ll_details_container);
@@ -76,6 +77,7 @@ public class ModernDialogHelper {
         }
 
         dialog.show();
+        setupDialogWindow(context, dialog);
     }
 
     /**
@@ -86,8 +88,6 @@ public class ModernDialogHelper {
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         View view = LayoutInflater.from(context).inflate(R.layout.dialog_modern_list, null);
         dialog.setContentView(view);
-
-        setupDialogWindow(dialog);
 
         TextView tvTitle = view.findViewById(R.id.tv_dialog_list_title);
         RecyclerView rv = view.findViewById(R.id.rv_dialog_list);
@@ -103,15 +103,21 @@ public class ModernDialogHelper {
         }));
 
         dialog.show();
+        setupDialogWindow(context, dialog);
     }
 
     /**
-     * Configures the dialog window for transparency and layout.
+     * Configures the dialog window for transparency and mobile-friendly sizing.
+     * Sets width to 90% and height to WRAP_CONTENT, and makes background transparent.
      */
-    public static void setupDialogWindow(Dialog dialog) {
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    public static void setupDialogWindow(Context context, Dialog dialog) {
+        Window window = dialog.getWindow();
+        if (window != null) {
+            DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+            int width = (int) (metrics.widthPixels * 0.90);
+            
+            window.setLayout(width, WindowManager.LayoutParams.WRAP_CONTENT);
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
     }
 
@@ -144,14 +150,18 @@ public class ModernDialogHelper {
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
             holder.tv.setText(items.get(position));
+            
             if (position == selectedIndex) {
                 holder.ivCheck.setVisibility(View.VISIBLE);
-                holder.itemView.setBackgroundResource(R.drawable.bg_modal_chip_unselected); // Light highlight
+                holder.clickTarget.setBackgroundResource(R.drawable.bg_modal_chip_unselected);
             } else {
                 holder.ivCheck.setVisibility(View.GONE);
-                holder.itemView.setBackground(null);
+                TypedValue outValue = new TypedValue();
+                holder.itemView.getContext().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+                holder.clickTarget.setBackgroundResource(outValue.resourceId);
             }
-            holder.itemView.setOnClickListener(v -> listener.onItemSelected(position));
+            
+            holder.clickTarget.setOnClickListener(v -> listener.onItemSelected(position));
         }
 
         @Override
@@ -160,10 +170,17 @@ public class ModernDialogHelper {
         static class ViewHolder extends RecyclerView.ViewHolder {
             TextView tv;
             ImageView ivCheck;
+            View clickTarget;
+            
             ViewHolder(View v) { 
                 super(v); 
                 tv = v.findViewById(R.id.tv_item_text); 
                 ivCheck = v.findViewById(R.id.iv_item_check);
+                if (v instanceof ViewGroup && ((ViewGroup) v).getChildCount() > 0) {
+                    clickTarget = ((ViewGroup) v).getChildAt(0);
+                } else {
+                    clickTarget = v;
+                }
             }
         }
     }

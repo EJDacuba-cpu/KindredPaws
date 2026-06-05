@@ -1,6 +1,7 @@
 package com.firstapp.kidredpawpaws;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,9 +18,14 @@ import com.firstapp.kidredpawpaws.models.supabase.AppointmentDto;
 import com.firstapp.kidredpawpaws.models.supabase.OwnerDto;
 import com.firstapp.kidredpawpaws.models.supabase.PetDto;
 import com.firstapp.kidredpawpaws.repositories.ClientRepository;
+import com.firstapp.kidredpawpaws.utils.DateTimeUtils;
 import com.firstapp.kidredpawpaws.utils.SessionManager;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 import retrofit2.Call;
@@ -81,11 +87,7 @@ public class HomeFragment extends Fragment {
         String ownerName = sessionManager.getOwnerName();
         String accessToken = sessionManager.getAccessToken();
 
-        Log.d(TAG, "Loading Home data. Logged-in email: " + email);
-        Log.d(TAG, "Current saved ownerId: " + ownerId + ", ownerName: " + ownerName);
-
         if (email == null || email.isEmpty() || accessToken == null) {
-            Log.e(TAG, "No email or access token found in SessionManager.");
             tvGreeting.setText("Hello, Guest!");
             tvGreetingSubtitle.setText("Please login again.");
             showNoPets();
@@ -98,10 +100,8 @@ public class HomeFragment extends Fragment {
         }
 
         if (ownerId == null) {
-            Log.d(TAG, "OwnerId is missing. Fetching owner by email...");
             fetchOwnerByEmail(accessToken, email);
         } else {
-            Log.d(TAG, "OwnerId exists. Fetching pets...");
             fetchPets(accessToken, ownerId);
         }
     }
@@ -112,7 +112,6 @@ public class HomeFragment extends Fragment {
             public void onResponse(@NonNull Call<List<OwnerDto>> call, @NonNull Response<List<OwnerDto>> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                     OwnerDto owner = response.body().get(0);
-                    Log.d(TAG, "Owner lookup success result: Found owner " + owner.getId());
                     sessionManager.saveOwnerId(owner.getId());
                     sessionManager.saveOwnerName(owner.getFullName());
                     updateGreeting(owner.getFullName());
@@ -124,21 +123,12 @@ public class HomeFragment extends Fragment {
 
             @Override
             public void onFailure(@NonNull Call<List<OwnerDto>> call, @NonNull Throwable t) {
-                Log.e(TAG, "Owner lookup result: API failure", t);
                 updateGreeting("Guest");
             }
         });
     }
 
     private void handleOwnerNotFound(Response<List<OwnerDto>> response, String email) {
-        Log.w(TAG, "Owner lookup result: Not found for email " + email);
-        if (response.errorBody() != null) {
-            try {
-                Log.e(TAG, "Error body: " + response.errorBody().string());
-            } catch (IOException e) {
-                Log.e(TAG, "Error reading error body", e);
-            }
-        }
         tvGreeting.setText("Hello, Guest!");
         tvGreetingSubtitle.setText("No customer profile found.");
         showNoPets();
@@ -146,21 +136,18 @@ public class HomeFragment extends Fragment {
     }
 
     private void fetchPets(String accessToken, String ownerId) {
-        Log.d(TAG, "Fetching pets for ownerId: " + ownerId);
         clientRepository.getPetsByOwnerId(accessToken, ownerId, new Callback<List<PetDto>>() {
             @Override
             public void onResponse(@NonNull Call<List<PetDto>> call, @NonNull Response<List<PetDto>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     List<PetDto> pets = response.body();
-                    Log.d(TAG, "Pets response: SUCCESS. Found " + pets.size() + " pets.");
                     updatePetsList(pets);
                     if (!pets.isEmpty()) {
-                        fetchNextAppointment(accessToken, pets.get(0).getId(), pets.get(0).getName());
+                        fetchAllAppointments(accessToken, pets);
                     } else {
                         showNoVisit();
                     }
                 } else {
-                    Log.e(TAG, "Pets response: FAILURE. Status: " + response.code());
                     showNoPets();
                     showNoVisit();
                 }
@@ -168,33 +155,94 @@ public class HomeFragment extends Fragment {
 
             @Override
             public void onFailure(@NonNull Call<List<PetDto>> call, @NonNull Throwable t) {
-                Log.e(TAG, "Pets response: API FAILURE", t);
                 showNoPets();
             }
         });
     }
 
-    private void fetchNextAppointment(String accessToken, String petId, String petName) {
-        Log.d(TAG, "Fetching next appointment for petId: " + petId);
-        clientRepository.getNextAppointmentByPetId(accessToken, petId, new Callback<List<AppointmentDto>>() {
+    private void fetchAllAppointments(String accessToken, List<PetDto> pets) {
+        List<String> petIds = new ArrayList<>();
+        for (PetDto p : pets) petIds.add(p.getId());
+        String petIdsCsv = TextUtils.join(",", petIds);
+
+        clientRepository.getAppointmentsByPetIds(accessToken, petIdsCsv, new Callback<List<AppointmentDto>>() {
             @Override
             public void onResponse(@NonNull Call<List<AppointmentDto>> call, @NonNull Response<List<AppointmentDto>> response) {
-                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                    AppointmentDto appointment = response.body().get(0);
-                    Log.d(TAG, "Appointment result: Found upcoming for pet " + petId);
-                    updateNextVisit(appointment, petName);
+                if (response.isSuccessful() && response.body() != null) {
+                    findAndDisplayNearestUpcoming(response.body(), pets);
                 } else {
-                    Log.d(TAG, "Appointment result: No upcoming appointments found for pet " + petId);
                     showNoVisit();
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<List<AppointmentDto>> call, @NonNull Throwable t) {
-                Log.e(TAG, "Appointment result: API failure", t);
                 showNoVisit();
             }
         });
+    }
+
+    private void findAndDisplayNearestUpcoming(List<AppointmentDto> appointments, List<PetDto> pets) {
+        Date now = new Date();
+        List<AppointmentDto> upcomingCandidates = new ArrayList<>();
+
+        for (AppointmentDto appt : appointments) {
+            Date apptDate = DateTimeUtils.parseIsoDateTime(appt.getScheduledAt());
+            String status = appt.getStatus() != null ? appt.getStatus().toLowerCase() : "";
+            if (apptDate != null && apptDate.after(now) && (status.equals("scheduled") || status.equals("pending"))) {
+                upcomingCandidates.add(appt);
+            }
+        }
+
+        if (upcomingCandidates.isEmpty()) {
+            showNoVisit();
+            return;
+        }
+
+        // Sort by scheduled_at ascending
+        Collections.sort(upcomingCandidates, new Comparator<AppointmentDto>() {
+            @Override
+            public int compare(AppointmentDto a1, AppointmentDto a2) {
+                Date d1 = DateTimeUtils.parseIsoDateTime(a1.getScheduledAt());
+                Date d2 = DateTimeUtils.parseIsoDateTime(a2.getScheduledAt());
+                if (d1 == null || d2 == null) return 0;
+                return d1.compareTo(d2);
+            }
+        });
+
+        AppointmentDto nearest = upcomingCandidates.get(0);
+        PetDto pet = null;
+        for (PetDto p : pets) {
+            if (p.getId().equals(nearest.getPetId())) {
+                pet = p;
+                break;
+            }
+        }
+
+        String petName = pet != null ? pet.getName() : "Unknown Pet";
+        updateNextVisitUI(nearest, petName);
+    }
+
+    private void updateNextVisitUI(AppointmentDto appointment, String petName) {
+        tvNoVisit.setVisibility(View.GONE);
+        cardNextVisit.setVisibility(View.VISIBLE);
+
+        String title = appointment.getTitle();
+        if (title == null || title.isEmpty()) {
+            title = appointment.getCategory() != null ? appointment.getCategory() : 
+                   (appointment.getService() != null ? appointment.getService() : "Appointment");
+        }
+        
+        tvPetNameVisit.setText(petName);
+        tvServiceVisit.setText(title);
+        
+        String formattedDateTime = DateTimeUtils.formatAppointmentDateTime(appointment.getScheduledAt());
+        tvTimeVisit.setText(formattedDateTime);
+        
+        tvLocationVisit.setText(appointment.getRoom() != null ? appointment.getRoom() : 
+                               (appointment.getVet() != null ? appointment.getVet() : "Main Clinic"));
+
+        Log.d(TAG, "Displaying upcoming appt: " + appointment.getId() + " for " + petName + " at " + formattedDateTime);
     }
 
     private void updateGreeting(String name) {
@@ -214,7 +262,6 @@ public class HomeFragment extends Fragment {
         }
 
         tvNoPets.setVisibility(View.GONE);
-        // Show first two pets
         int limit = Math.min(pets.size(), 2);
         for (int i = 0; i < limit; i++) {
             addPetCard(pets.get(i));
@@ -251,25 +298,10 @@ public class HomeFragment extends Fragment {
         llPetsContainer.addView(petCardView);
     }
 
-    private void updateNextVisit(AppointmentDto appointment, String petName) {
-        tvNoVisit.setVisibility(View.GONE);
-        cardNextVisit.setVisibility(View.VISIBLE);
-
-        String displayTitle = appointment.getTitle();
-        if (displayTitle == null || displayTitle.isEmpty()) {
-            displayTitle = appointment.getService() != null ? appointment.getService() : appointment.getType();
-        }
-        
-        tvPetNameVisit.setText(petName);
-        tvServiceVisit.setText(displayTitle);
-        tvTimeVisit.setText(appointment.getScheduledAt());
-        tvLocationVisit.setText(appointment.getRoom() != null ? appointment.getRoom() : 
-                               (appointment.getVet() != null ? appointment.getVet() : "Clinic"));
-    }
-
     private void showNoVisit() {
         cardNextVisit.setVisibility(View.GONE);
         tvNoVisit.setVisibility(View.VISIBLE);
+        tvNoVisit.setText("No upcoming appointment\nBook a visit for your pet today.");
     }
 
     private void showNoPets() {

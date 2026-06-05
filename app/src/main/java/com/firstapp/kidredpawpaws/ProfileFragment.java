@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -74,17 +75,18 @@ public class ProfileFragment extends Fragment {
         view.findViewById(R.id.cv_menu_pets).setOnClickListener(v -> navigateToPets(false));
         view.findViewById(R.id.cv_menu_history).setOnClickListener(v -> navigateToPets(true));
         
+        // Modern Dialogs for Menu Items
         view.findViewById(R.id.cv_menu_notifications).setOnClickListener(v -> 
                 ModernDialogHelper.showInfoDialog(requireContext(), "Notifications", "Notifications will be available soon. Keep an eye out for updates!"));
         
         view.findViewById(R.id.cv_menu_support).setOnClickListener(v -> 
-                ModernDialogHelper.showInfoDialog(requireContext(), "Help & Support", "For any assistance, please contact our support team at support@kindredpaws.com or call our clinic directly."));
+                ModernDialogHelper.showInfoDialog(requireContext(), "Help & Support", "For support, please contact Kindred Paws Pet Care Center at support@kindredpaws.com."));
         
         view.findViewById(R.id.cv_menu_privacy).setOnClickListener(v -> 
-                ModernDialogHelper.showInfoDialog(requireContext(), "Privacy Policy", "Your privacy is important to us. We use your data exclusively for managing your pet's health records and appointments."));
+                ModernDialogHelper.showInfoDialog(requireContext(), "Privacy Policy", "Your information is used only for appointment and pet care management within our clinic."));
         
         view.findViewById(R.id.cv_menu_about).setOnClickListener(v -> 
-                ModernDialogHelper.showInfoDialog(requireContext(), "About Kindred Paws", "Kindred Paws Pet Care Center - Dedicated to providing premium, compassionate care for your beloved pets. Version 1.0.0"));
+                ModernDialogHelper.showInfoDialog(requireContext(), "About Kindred Paws", "Kindred Paws Pet Care Center - Dedicated to providing the highest quality medical and grooming care for your furry companions."));
 
         ivEditProfile.setOnClickListener(v -> showEditProfileDialog());
 
@@ -144,16 +146,13 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onResponse(@NonNull Call<List<OwnerDto>> call, @NonNull Response<List<OwnerDto>> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                    OwnerDto owner = response.body().get(0);
-                    displayOwnerData(owner);
-                } else {
-                    Log.e(TAG, "Failed to load profile. Code: " + response.code());
+                    displayOwnerData(response.body().get(0));
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<List<OwnerDto>> call, @NonNull Throwable t) {
-                Log.e(TAG, "Network error loading profile", t);
+                Log.e(TAG, "Error loading profile", t);
             }
         });
 
@@ -186,9 +185,8 @@ public class ProfileFragment extends Fragment {
             public void onResponse(@NonNull Call<List<PetDto>> call, @NonNull Response<List<PetDto>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     List<PetDto> pets = response.body();
-                    int count = pets.size();
-                    tvPetsCount.setText(String.valueOf(count));
-                    if (count > 0) fetchAppointmentsCount(token, pets);
+                    tvPetsCount.setText(String.valueOf(pets.size()));
+                    if (!pets.isEmpty()) fetchAppointmentsCount(token, pets);
                     else tvAppointmentsCount.setText("0");
                 }
             }
@@ -229,9 +227,16 @@ public class ProfileFragment extends Fragment {
         View v = getLayoutInflater().inflate(R.layout.dialog_edit_profile, null);
         dialog.setContentView(v);
 
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.show();
+
+        // Apply modern mobile-friendly sizing
+        Window window = dialog.getWindow();
+        if (window != null) {
+            DisplayMetrics metrics = new DisplayMetrics();
+            requireActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+            int width = (int) (metrics.widthPixels * 0.90);
+            window.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
 
         final EditText etName = v.findViewById(R.id.et_edit_name);
@@ -254,7 +259,6 @@ public class ProfileFragment extends Fragment {
                 dialog.dismiss();
             }
         });
-        dialog.show();
     }
 
     private void updateProfile(String name, String phone, String location) {

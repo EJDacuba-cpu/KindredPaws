@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,14 +25,14 @@ import com.firstapp.kidredpawpaws.models.supabase.AppointmentDto;
 import com.firstapp.kidredpawpaws.models.supabase.PetCreateRequest;
 import com.firstapp.kidredpawpaws.models.supabase.PetDto;
 import com.firstapp.kidredpawpaws.repositories.ClientRepository;
-import com.firstapp.kidredpawpaws.utils.ModernDialogHelper;
+import com.firstapp.kidredpawpaws.utils.DateTimeUtils;
 import com.firstapp.kidredpawpaws.utils.SessionManager;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -112,12 +113,12 @@ public class BookFragment extends Fragment {
     }
 
     private void fetchAppointments(String token, List<String> petIds, List<PetDto> pets) {
-        String idsCsv = String.join(",", petIds);
+        String idsCsv = TextUtils.join(",", petIds);
         clientRepository.getAppointmentsByPetIds(token, idsCsv, new Callback<List<AppointmentDto>>() {
             @Override
             public void onResponse(@NonNull Call<List<AppointmentDto>> call, @NonNull Response<List<AppointmentDto>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    displayFirstUpcoming(response.body(), pets);
+                    findAndDisplayNearestUpcoming(response.body(), pets);
                 }
             }
             @Override
@@ -127,44 +128,76 @@ public class BookFragment extends Fragment {
         });
     }
 
-    private void displayFirstUpcoming(List<AppointmentDto> appointments, List<PetDto> pets) {
-        if (appointments == null || appointments.isEmpty() || !isAdded()) return;
+    private void findAndDisplayNearestUpcoming(List<AppointmentDto> appointments, List<PetDto> pets) {
+        if (appointments == null || appointments.isEmpty() || !isAdded()) {
+            hideUpcomingCard();
+            return;
+        }
 
-        AppointmentDto upcoming = null;
         Date now = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+        List<AppointmentDto> upcomingCandidates = new ArrayList<>();
 
-        for (int i = appointments.size() - 1; i >= 0; i--) {
-            AppointmentDto appt = appointments.get(i);
-            try {
-                String s = appt.getScheduledAt().split("\\.")[0].replace("Z", "");
-                Date d = sdf.parse(s);
-                if (d != null && d.after(now) && "scheduled".equals(appt.getStatus())) {
-                    upcoming = appt;
-                    break;
-                }
-            } catch (Exception ignored) {}
-        }
-
-        if (upcoming != null) {
-            tvUpcomingLabel.setVisibility(View.VISIBLE);
-            cvUpcoming.setVisibility(View.VISIBLE);
-            
-            String name = "Unknown Pet";
-            for (PetDto p : pets) {
-                if (p.getId().equals(upcoming.getPetId())) {
-                    name = p.getName();
-                    break;
-                }
+        for (AppointmentDto appt : appointments) {
+            Date apptDate = DateTimeUtils.parseIsoDateTime(appt.getScheduledAt());
+            String status = appt.getStatus() != null ? appt.getStatus().toLowerCase() : "";
+            if (apptDate != null && apptDate.after(now) && (status.equals("scheduled") || status.equals("pending"))) {
+                upcomingCandidates.add(appt);
             }
-            
-            tvPetName.setText(name);
-            tvService.setText(upcoming.getTitle() != null ? upcoming.getTitle() : upcoming.getCategory());
-            tvDateTime.setText(formatDate(upcoming.getScheduledAt()) + " • " + formatTime(upcoming.getScheduledAt()));
-        } else {
-            tvUpcomingLabel.setVisibility(View.GONE);
-            cvUpcoming.setVisibility(View.GONE);
         }
+
+        if (upcomingCandidates.isEmpty()) {
+            hideUpcomingCard();
+            return;
+        }
+
+        // Sort by scheduled_at ascending
+        Collections.sort(upcomingCandidates, new Comparator<AppointmentDto>() {
+            @Override
+            public int compare(AppointmentDto a1, AppointmentDto a2) {
+                Date d1 = DateTimeUtils.parseIsoDateTime(a1.getScheduledAt());
+                Date d2 = DateTimeUtils.parseIsoDateTime(a2.getScheduledAt());
+                if (d1 == null || d2 == null) return 0;
+                return d1.compareTo(d2);
+            }
+        });
+
+        AppointmentDto nearest = upcomingCandidates.get(0);
+        PetDto pet = null;
+        for (PetDto p : pets) {
+            if (p.getId().equals(nearest.getPetId())) {
+                pet = p;
+                break;
+            }
+        }
+
+        String petName = pet != null ? pet.getName() : "Unknown Pet";
+        updateUpcomingUI(nearest, petName);
+    }
+
+    private void updateUpcomingUI(AppointmentDto appointment, String petName) {
+        tvUpcomingLabel.setVisibility(View.VISIBLE);
+        tvUpcomingLabel.setText("Upcoming Appointment");
+        cvUpcoming.setVisibility(View.VISIBLE);
+        
+        String title = appointment.getTitle();
+        if (title == null || title.isEmpty()) {
+            title = appointment.getCategory() != null ? appointment.getCategory() : 
+                   (appointment.getService() != null ? appointment.getService() : "Appointment");
+        }
+        
+        tvPetName.setText(petName);
+        tvService.setText(title);
+        
+        String formattedDateTime = DateTimeUtils.formatAppointmentDateTime(appointment.getScheduledAt());
+        tvDateTime.setText(formattedDateTime);
+
+        Log.d(TAG, "Selected upcoming appt: " + appointment.getId() + " for " + petName + " at " + formattedDateTime);
+    }
+
+    private void hideUpcomingCard() {
+        tvUpcomingLabel.setVisibility(View.VISIBLE);
+        tvUpcomingLabel.setText("No upcoming appointment");
+        cvUpcoming.setVisibility(View.GONE);
     }
 
     private void showAddPetDialog() {
@@ -173,9 +206,16 @@ public class BookFragment extends Fragment {
         View v = getLayoutInflater().inflate(R.layout.dialog_add_pet, null);
         dialog.setContentView(v);
 
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.show();
+
+        // Apply modern mobile-friendly sizing
+        Window window = dialog.getWindow();
+        if (window != null) {
+            DisplayMetrics metrics = new DisplayMetrics();
+            requireActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+            int width = (int) (metrics.widthPixels * 0.90);
+            window.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
 
         EditText etName = v.findViewById(R.id.et_pet_name);
@@ -222,22 +262,5 @@ public class BookFragment extends Fragment {
                 }
             });
         });
-        dialog.show();
-    }
-
-    private String formatDate(String iso) {
-        try {
-            SimpleDateFormat in = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
-            Date d = in.parse(iso.split("\\.")[0]);
-            return new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(d);
-        } catch (Exception e) { return iso; }
-    }
-
-    private String formatTime(String iso) {
-        try {
-            SimpleDateFormat in = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
-            Date d = in.parse(iso.split("\\.")[0]);
-            return new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(d);
-        } catch (Exception e) { return ""; }
     }
 }
