@@ -51,7 +51,7 @@ public class PetsFragment extends Fragment {
 
     private List<PetDto> petList;
     private PetDto selectedPet;
-    private String selectedPetId; // Track the selected pet ID
+    private String selectedPetId = null;
     private boolean isHistoryTab = true; 
     private boolean isMedicalFilter = true; // Secondary filter
 
@@ -135,11 +135,19 @@ public class PetsFragment extends Fragment {
                         showEmptyState("No pets found.");
                     } else {
                         hideEmptyState();
-                        // Maintain selected pet if switching filters
-                        if (selectedPet == null) {
-                            displayPetData(petList.get(0));
-                        } else {
-                            displayPetData(selectedPet);
+                        // Maintain selected pet if switching filters or reloading
+                        boolean found = false;
+                        if (selectedPetId != null) {
+                            for (PetDto p : petList) {
+                                if (p.getId().equals(selectedPetId)) {
+                                    displayPet(p);
+                                    found = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!found) {
+                            displayPet(petList.get(0));
                         }
                     }
                 } else {
@@ -154,16 +162,25 @@ public class PetsFragment extends Fragment {
         });
     }
 
-    private void displayPetData(PetDto pet) {
+    private void displayPet(PetDto pet) {
         selectedPet = pet;
         selectedPetId = pet.getId();
-        Log.d(TAG, "Selected Pet ID: " + pet.getId());
+        Log.d(TAG, "Displaying Pet ID: " + selectedPetId);
+        Log.d(TAG, "Displaying Pet Name: " + pet.getName());
 
         if (tvPetName != null) tvPetName.setText(pet.getName());
         
         String species = pet.getSpecies() != null ? pet.getSpecies() : "Unknown";
+        String breed = pet.getBreed();
         String age = pet.getAgeYears() != null ? pet.getAgeYears() + " Years" : "Age Unknown";
-        if (tvPetSpeciesAge != null) tvPetSpeciesAge.setText(species + " • " + age);
+        
+        StringBuilder subHeader = new StringBuilder(species);
+        if (breed != null && !breed.isEmpty()) {
+            subHeader.append(" • ").append(breed);
+        }
+        subHeader.append(" • ").append(age);
+        
+        if (tvPetSpeciesAge != null) tvPetSpeciesAge.setText(subHeader.toString());
         
         // Avatar Initials
         String initials = "";
@@ -180,7 +197,12 @@ public class PetsFragment extends Fragment {
         if (tvPetStatus != null) tvPetStatus.setText(pet.getStatus() != null ? pet.getStatus() : "Healthy");
 
         updateProfileInfo(pet);
-        switchTab(isHistoryTab); // Refresh current tab/filter
+        
+        // Reload history data for the new pet
+        refreshHistory();
+        
+        // Refresh UI state
+        switchTab(isHistoryTab);
         updateHistoryFilterUI();
     }
 
@@ -202,13 +224,14 @@ public class PetsFragment extends Fragment {
     private void refreshHistory() {
         if (selectedPet == null) return;
         if (isMedicalFilter) {
-            loadMedicalRecords(selectedPet.getId());
+            loadMedicalHistory(selectedPet.getId());
         } else {
             loadAppointmentHistory(selectedPet.getId());
         }
     }
 
-    private void loadMedicalRecords(String petId) {
+    private void loadMedicalHistory(String petId) {
+        Log.d(TAG, "medical records reload pet id: " + petId);
         String token = sessionManager.getAccessToken();
         if (llHistoryContainer == null) return;
         llHistoryContainer.removeAllViews();
@@ -246,6 +269,7 @@ public class PetsFragment extends Fragment {
     }
 
     private void loadAppointmentHistory(String petId) {
+        Log.d(TAG, "appointment history reload pet id: " + petId);
         String token = sessionManager.getAccessToken();
         if (llHistoryContainer == null) return;
         llHistoryContainer.removeAllViews();
@@ -440,22 +464,16 @@ public class PetsFragment extends Fragment {
         int selectedIndex = -1;
         for (int i = 0; i < petList.size(); i++) {
             names.add(petList.get(i).getName());
-            if (selectedPet != null && petList.get(i).getId().equals(selectedPet.getId())) {
+            if (selectedPetId != null && petList.get(i).getId().equals(selectedPetId)) {
                 selectedIndex = i;
             }
         }
         ModernDialogHelper.showListDialog(requireContext(), "Select Pet", names, selectedIndex, position -> {
             PetDto pet = petList.get(position);
-            Log.d(TAG, "clicked pet name: " + pet.getName());
             Log.d(TAG, "clicked pet id: " + pet.getId());
-            
-            selectedPet = pet;
-            selectedPetId = pet.getId();
-            Log.d(TAG, "selectedPetId after update: " + selectedPetId);
-            
-            displayPetData(pet);
-            loadMedicalRecords(pet.getId());
-            loadAppointmentHistory(pet.getId());
+            Log.d(TAG, "clicked pet name: " + pet.getName());
+            displayPet(pet);
+            Log.d(TAG, "selected pet id after update: " + selectedPetId);
         });
     }
 

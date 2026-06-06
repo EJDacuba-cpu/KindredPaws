@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -80,23 +81,28 @@ public class SignUpActivity extends AppCompatActivity {
         String password = etPassword.getText().toString().trim();
         String confirmPassword = etConfirmPassword.getText().toString().trim();
 
-        if (TextUtils.isEmpty(name)
-                || TextUtils.isEmpty(email)
-                || TextUtils.isEmpty(phone)
-                || TextUtils.isEmpty(password)
-                || TextUtils.isEmpty(confirmPassword)) {
-
-            showSignUpError("Please complete all fields.");
+        if (TextUtils.isEmpty(name)) {
+            showSignUpError("Full name is required.");
             return;
         }
 
-        if (!password.equals(confirmPassword)) {
-            showSignUpError("Passwords do not match.");
+        if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            showSignUpError("Please enter a valid email address.");
+            return;
+        }
+
+        if (TextUtils.isEmpty(phone)) {
+            showSignUpError("Phone number is required.");
             return;
         }
 
         if (password.length() < 6) {
             showSignUpError("Password must be at least 6 characters.");
+            return;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            showSignUpError("Passwords do not match.");
             return;
         }
 
@@ -152,15 +158,17 @@ public class SignUpActivity extends AppCompatActivity {
                     showSignUpSuccess("Account created successfully. Please login.");
                     navigateToLoginWithDelay();
                 } else {
+                    String errorBody = "";
                     try {
                         if (response.errorBody() != null) {
-                            Log.e(TAG, "Failed to create owner profile. Error: " + response.errorBody().string());
+                            errorBody = response.errorBody().string();
+                            Log.e(TAG, "Owner insert error body: " + errorBody);
                         }
                     } catch (IOException e) {
                         Log.e(TAG, "Error reading error body", e);
                     }
-                    Log.e(TAG, "Failed to create owner profile. Code: " + response.code());
-                    showSignUpError("Account created, but customer profile setup failed.");
+                    Log.e(TAG, "Owner insert response code: " + response.code());
+                    showSignUpError("Account created, but profile setup failed. Please contact support.");
                 }
             }
 
@@ -168,7 +176,7 @@ public class SignUpActivity extends AppCompatActivity {
             public void onFailure(@NonNull Call<List<OwnerDto>> call, @NonNull Throwable t) {
                 setSignUpLoading(false);
                 Log.e(TAG, "Network error creating owner profile", t);
-                showSignUpError("Account created, but customer profile setup failed.");
+                showSignUpError("Account created, but profile setup failed. Please contact support.");
             }
         });
     }
@@ -195,19 +203,16 @@ public class SignUpActivity extends AppCompatActivity {
             Log.e(TAG, "Error reading error body", e);
         }
 
-        Log.e(TAG, "Sign up failed. Code: " + response.code());
-        Log.e(TAG, "Full error body: " + errorBody);
+        Log.e(TAG, "Sign up response code: " + response.code());
+        Log.e(TAG, "Sign up full error body: " + errorBody);
 
         String lowerError = errorBody.toLowerCase();
 
         if (lowerError.contains("user already registered") || lowerError.contains("already exists")) {
             return "Email is already registered. Please login instead.";
         }
-        if (lowerError.contains("password should be at least")) {
+        if (lowerError.contains("password should be at least") || lowerError.contains("password")) {
             return "Password must be at least 6 characters.";
-        }
-        if (lowerError.contains("signup requires a valid password")) {
-            return "Please enter a valid password.";
         }
         if (lowerError.contains("invalid email")) {
             return "Please enter a valid email address.";
@@ -215,8 +220,11 @@ public class SignUpActivity extends AppCompatActivity {
         if (lowerError.contains("rate limit") || lowerError.contains("too many") || response.code() == 429) {
             return "Too many sign up attempts. Please wait and try again later.";
         }
+        if (lowerError.contains("email not confirmed")) {
+            return "Please confirm your email before logging in.";
+        }
 
-        return "Sign up failed. Please try again. Code: " + response.code();
+        return "Sign up failed. Code: " + response.code();
     }
 
     private void showSignUpError(String message) {
